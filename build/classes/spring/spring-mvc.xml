@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"    
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:mvc="http://www.springframework.org/schema/mvc"   
+        xmlns:p="http://www.springframework.org/schema/p"  
+        xmlns:aop="http://www.springframework.org/schema/aop"   
+        xmlns:context="http://www.springframework.org/schema/context"  
+        xmlns:jee="http://www.springframework.org/schema/jee"  
+        xmlns:tx="http://www.springframework.org/schema/tx"  
+        xsi:schemaLocation="    
+            http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.2.xsd  
+            http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+            http://www.springframework.org/schema/mvc 
+        	http://www.springframework.org/schema/mvc/spring-mvc-4.2.xsd   
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
+            http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-4.2.xsd  
+            http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.2.xsd">
+     <!-- 添加sessionFactory bane ，注意，该类是Spring提供的 -->
+ 
+ <!-- 组件扫描，扫描含有注解的类 -->
+    <context:component-scan base-package="com.ssm"></context:component-scan>
+    <!--2、确定 aop 注解生效  -->
+	<aop:aspectj-autoproxy></aop:aspectj-autoproxy>
+	
+	<!--注解处理器映射器  -->   
+    <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping"></bean> 
+     
+    <!--注解处理器适配器  -->   
+    <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter"></bean> 
+    
+    
+    <!-- 配置Handler -->    
+	<!-- <bean name="/login.action" class="com.mvc.controller.LoginController" />
+	   配置处理器映射器
+	    将bean的name作为url进行查找，需要在配置Handler时指定bean name（就是url）
+	<bean class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping" />
+	   配置处理器适配器，所有适配器都得实现 HandlerAdapter接口
+	<bean class="org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter" />  -->
+	 
+	<!-- 配置视图解析器 
+	    进行jsp解析，默认使用jstl标签，classpath下得有jstl的包  如果这样配，那么在 Handler 中返回的必须是路径+jsp页面名称+".jsp"-->
+	<!-- <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver" /> -->
+    
+    <!--批量配置Handler,指定扫描的包全称  -->
+    <context:component-scan base-package="com.ssm.controller"></context:component-scan>
+    
+    <!--配置视图解析器 如果这样配，那么在 Handler 中只需要返回在 view 文件夹下的jsp 页面名就可以了  -->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <!-- 返回视图页面的前缀 -->
+        <property name="prefix" value="/WEB-INF/view/"></property>
+        <!-- 返回页面的后缀 -->
+        <property name="suffix" value=".jsp"></property>
+    </bean>
+    <mvc:default-servlet-handler/> 
+    
+    <!-- 用于将对象转换为 JSON  -->  
+	<bean id="stringConverter" class="org.springframework.http.converter.StringHttpMessageConverter">  
+	    <property name="supportedMediaTypes">  
+	        <list>  
+	            <value>text/plain;charset=UTF-8</value>  
+	        </list>  
+	    </property>  
+	</bean>  
+	<bean id="jsonConverter"   class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter"></bean>  
+	 
+	<bean   class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">  
+	    <property name="messageConverters">  
+	        <list>  
+	            <ref bean="stringConverter" />  
+	            <ref bean="jsonConverter" />  
+	        </list>  
+	    </property>  
+	</bean>
+    
+</beans>

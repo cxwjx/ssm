@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"    
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+        xmlns:p="http://www.springframework.org/schema/p"  
+        xmlns:aop="http://www.springframework.org/schema/aop"   
+        xmlns:context="http://www.springframework.org/schema/context"  
+        xmlns:jee="http://www.springframework.org/schema/jee"  
+        xmlns:tx="http://www.springframework.org/schema/tx"  
+        xsi:schemaLocation="    
+            http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.2.xsd  
+            http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd 
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
+            http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-4.2.xsd  
+            http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.2.xsd">
+     <!-- 添加sessionFactory bane ，注意，该类是Spring提供的 -->
+ 
+ <!-- 组件扫描，扫描含有注解的类 -->
+    <context:component-scan base-package="com.ssm"></context:component-scan>
+    <!--2、确定 aop 注解生效  -->
+	<aop:aspectj-autoproxy></aop:aspectj-autoproxy>
+	
+		<!--本示例采用DBCP连接池，应预先把DBCP的jar包复制到工程的lib目录下。 --> 
+
+  <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+     <property name="driverClassName" value="com.mysql.jdbc.Driver"/> 
+     <property name="url" value="jdbc:mysql://localhost:3306/ssh"/>
+     <property name="username" value="root"/> 
+     <property name="password" value="root"/> 
+     <property name="maxActive" value="255"/> 
+     <property name="maxIdle" value="2"/> 
+     <!-- <property name="maxWait" value="120000"/>  -->
+  </bean> 
+
+  <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean"> 
+     <!--dataSource属性指定要用到的连接池--> 
+     <property name="dataSource" ref="dataSource"/> 
+     <!--configLocation属性指定mybatis的核心配置文件--> 
+     <property name="configLocation" value="classpath:mybatis/mybatis-config.xml"/> 
+     <!--配置扫描式加载SQL映射文件,记得去掉mybatis-config配置-->  
+     <property name="mapperLocations" value="classpath:com/ssm/dao/*.xml"/>  
+     <!-- 扫描entity包 使用别名 -->
+     <!-- <property value="com.ssm.model" name="typeAliasesPackage"/> -->
+  </bean> 
+
+  <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer"> 
+     <!--sqlSessionFactory属性指定要用到的SqlSessionFactory实例--> 
+     <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+     <property name="basePackage" value="com.ssm.dao" />
+     <!--mapperInterface属性指定映射器接口，用于实现此接口并生成映射器对象--> 
+    <!--  <property name="userService" value="com.spring.mybatis.service.UserService" /> -->
+  </bean> 
+  
+	
+
+    
+    
+    <!-- 配置Handler -->    
+	<!-- <bean name="/login.action" class="com.mvc.controller.LoginController" />
+	   配置处理器映射器
+	    将bean的name作为url进行查找，需要在配置Handler时指定bean name（就是url）
+	<bean class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping" />
+	   配置处理器适配器，所有适配器都得实现 HandlerAdapter接口
+	<bean class="org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter" />  -->
+	 
+	<!-- 配置视图解析器 
+	    进行jsp解析，默认使用jstl标签，classpath下得有jstl的包  如果这样配，那么在 Handler 中返回的必须是路径+jsp页面名称+".jsp"-->
+	<!-- <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver" /> -->
+    
+    <!--批量配置Handler,指定扫描的包全称  -->
+    <context:component-scan base-package="com.ssm.controller"></context:component-scan>
+    
+    
+    
+      <!-- 事务管理器 -->
+    <!-- 对mybatis操作数据事务控制，spring使用jdbc的事务控制类 -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+         <!-- 数据源dataSource在spring-dao.xml中配置了 -->
+         <property name="dataSource" ref="dataSource"/>
+    </bean>
+    
+     <!-- 通知 -->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager" >
+         <tx:attributes>
+             <tx:method name="save*" propagation="REQUIRED"/>
+             <tx:method name="delete*" propagation="REQUIRED"/>
+             <tx:method name="update*" propagation="REQUIRED"/>
+             <tx:method name="insert*" propagation="REQUIRED"/>
+             <tx:method name="find*" propagation="SUPPORTS" read-only="true"/>
+             <tx:method name="get*" propagation="SUPPORTS" read-only="true"/>
+             <tx:method name="select*" propagation="SUPPORTS" read-only="true"/>
+         </tx:attributes>
+    </tx:advice>
+     
+    <aop:config >
+         <!-- com.ys.service.impl包里面的所有类，所有方法，任何参数 -->
+         <aop:advisor advice-ref="txAdvice" pointcut="execution(* com.ssm.service.impl.*.*(..))"/>
+    </aop:config> 
+    
+</beans>

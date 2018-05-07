@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssm.dao.UserDao">
+    <select id="selectUserByID" parameterType="int" resultType="User">
+        select * from `user` where id = #{id}
+    </select>
+    
+    <resultMap type="User" id="resultListUser">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="password" property="password" />
+        <result column="age" property="age" />
+        <result column="company" property="company" />
+        <result column="department" property="department" />
+        <result column="role" property="role" />
+        <result column="entryDate" property="entryDate" />
+        <result column="departureDate" property="departureDate" />
+        <result column="active" property="active" />
+        <result column="description" property="description" />
+    </resultMap>
+    
+    <!-- 查找集合 -->
+     <select id="selectUsers" parameterType="string" resultMap="resultListUser">
+        select * from `user` where name like #{name}
+    </select>
+    
+    <!--新增-->
+    <insert id="addUser" parameterType="User" 
+        useGeneratedKeys="true" keyProperty="id"> 
+        insert into user(name,password,age,company,department,role)  
+             values(#{name},#{password},#{age},#{company},#{department},#{role})  
+    </insert>
+    
+    <!--修改  -->
+    <update id="updateUser" parameterType="User"> 
+       update user set name=#{name},password=#{password},age=#{age},
+       company=#{company},department=#{department},role=#{role}
+       where id=#{id}
+    </update>
+    
+    <!-- 删除 -->
+    <delete id="deleteUser" parameterType="int"> 
+        delete from user where id=#{id} 
+    </delete>
+    
+    <!-- User 联合文章进行查询 方法之一的配置 (多对一的方式)  -->    
+    <resultMap id="resultUserArticleList" type="Article">
+        <id property="id" column="aid" />
+        <result property="title" column="title" />
+        <result property="content" column="content" />
+        
+        <!-- <association property="user" javaType="User">
+	        <id column="id" property="id" />
+	        <result column="name" property="name" />
+	        <result column="password" property="password" />
+	        <result column="age" property="age" />
+	        <result column="company" property="company" />
+	        <result column="department" property="department" />
+	        <result column="role" property="role" />
+	        <result column="entryDate" property="entryDate" />
+	        <result column="departureDate" property="departureDate" />
+	        <result column="active" property="active" />
+	        <result column="description" property="description" />
+        </association>  -->    
+        
+        <!-- <association property="user" javaType="User" resultMap="resultListUser"/> -->
+        <collection  property="users" ofType="User" resultMap="resultListUser"/> 
+    </resultMap>
+    
+    <select id="getUserArticles" parameterType="int" resultMap="resultUserArticleList">
+       select user.id,user.name,user.password,user.age,user.company,user.department,
+       article.id aid,article.title,article.content from user,article
+              where user.id=article.userid and user.id=#{id}
+    </select>
+    
+    
+    
+    
+</mapper>
+
